@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "video-to-audio",
+  "compatibility_date": "2026-10-01",
+  // Static assets only: every conversion runs in the visitor's browser, so there is no Worker script.
+  "assets": {
+    "directory": "./dist"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

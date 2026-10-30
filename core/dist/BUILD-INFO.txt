@@ -1,0 +1,8 @@
+Built by core/build.sh
+emsdk 3.1.40
+FFmpeg n5.1.4 (4729204c17f756e186d622060088371d10b34f7e) + core/patches
+LAME 3.100 (sha256 ddfe36cab873794038ae2c1210557ad34857a4b6bdc515785d1da9e175b1da1e)
+ffmpeg.wasm fftools c3a763857c5e615ae8674715ad5e4f63ff469e9d
+
+11cacace2d2a1ed66b7d5f236c902c8f0ea1b22fae55ec6fbb569c27bda9e9e2  ffmpeg-core.js
+f5c2fc534a18088ff75c625b9ac1781aded333394ef87dee62b77f5a0bc3fd03  ffmpeg-core.wasm
