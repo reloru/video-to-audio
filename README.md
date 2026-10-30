@@ -17,9 +17,11 @@ Only the selected audio track is read.
 | WAV | Decoded once to PCM | 24-bit by default (lossless sources keep their own depth); 16-bit (TPDF-dithered) and 32-bit float are options. Trimmed to the length the container declares, so encoder priming/padding is removed. |
 | MP3 | Encoded with LAME 3.100 | 320 kbps CBR (or VBR V0), LAME `-q 2`. Rates MP3 players don't universally support are resampled to 44.1/48 kHz; more than two channels are downmixed. |
 
-Metadata is stripped: container tags (title, date, location, `udta`/`meta`/`ilst`,
-QuickTime keys), chapters and encoder stamps. What players need stays: the M4A edit list
-that hides encoder priming, and the MP3 LAME/Info header used for gapless playback.
+Container metadata is stripped: tags (title, date, location, author), `udta`/`meta`/`ilst`
+boxes, QuickTime keys, chapters, and the encoder tags FFmpeg would normally add. What players
+need stays: the M4A edit list that hides encoder priming, and the MP3 LAME/Info header used for
+gapless playback. An exact AAC copy necessarily keeps anything the original encoder wrote inside
+the audio frames themselves (FFmpeg-made files, for example, carry a short "Lavc" string there).
 
 ## How it works
 

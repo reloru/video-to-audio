@@ -18,11 +18,16 @@ sw.addEventListener("install", (event) => {
   );
 });
 
+// The previous version's cache is kept: a page that was already open when this version took
+// over still loads its own (old-hash) worker and wasm files from it. Older caches are removed.
 sw.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith(PREFIX) && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => {
+        const ours = keys.filter((k) => k.startsWith(PREFIX) && k !== CACHE);
+        return Promise.all(ours.slice(0, -1).map((k) => caches.delete(k)));
+      })
       .then(() => sw.clients.claim()),
   );
 });

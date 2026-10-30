@@ -152,7 +152,7 @@ export function App({ store }: { store: AppStore }) {
             <strong>MP3</strong> is re-encoded with LAME. Sample rates MP3 players don't universally support (like 8 kHz) are resampled to 48 or 44.1 kHz, and surround is downmixed to stereo.
           </li>
           <li>
-            <strong>Metadata is removed:</strong> titles, dates, locations, device and encoder tags. Only what players need remains (like the MP3 gapless header).
+            <strong>Metadata is removed</strong> from the file container: titles, dates, locations, device and encoder tags. Only what players need remains (like the MP3 gapless header). An exact M4A copy keeps the audio frames untouched, including anything the original encoder wrote inside them.
           </li>
           <li>
             Built with <a href="https://ffmpeg.org">FFmpeg</a> (LGPL 2.1) and <a href="https://lame.sourceforge.io">LAME</a> (LGPL 2) compiled to WebAssembly.{" "}
