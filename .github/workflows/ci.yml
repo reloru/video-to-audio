@@ -1,0 +1,92 @@
+name: CI and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      # Native ffmpeg/ffprobe are the independent reference the tests check outputs against.
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+      - run: npm run test:e2e
+
+      - name: Dry-run deploy
+        run: npx wrangler deploy --dry-run
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist
+          include-hidden-files: true
+          retention-days: 7
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-traces
+          path: test-results
+          retention-days: 7
+
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Deploy exactly what the check job built and tested.
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+
+      - uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+
+      - name: Verify the live site serves this build
+        run: |
+          expected=$(sha256sum dist/sw.js | cut -d' ' -f1)
+          for attempt in 1 2 3 4 5 6; do
+            live=$(curl -fsS "https://video-to-audio.reloru.workers.dev/sw.js?check=${GITHUB_SHA}" | sha256sum | cut -d' ' -f1) || true
+            if [ "$live" = "$expected" ]; then echo "Live sw.js matches this build"; exit 0; fi
+            sleep 10
+          done
+          echo "Live site does not serve this build" >&2
+          exit 1

@@ -1,0 +1,21 @@
+diff --git a/libavformat/movenc.c b/libavformat/movenc.c
+index 5608afd..59dbebd 100644
+--- a/libavformat/movenc.c
++++ b/libavformat/movenc.c
+@@ -4311,8 +4311,14 @@ static int mov_write_udta_tag(AVIOContext *pb, MOVMuxContext *mov,
+         mov_write_string_metadata(s, pb_buf, "\251key", "keywords",    0);
+         mov_write_raw_metadata_tag(s, pb_buf, "XMP_", "xmp");
+     } else {
+-        /* iTunes meta data */
+-        mov_write_meta_tag(pb_buf, mov, s);
++        /* iTunes meta data. In bitexact mode with nothing to describe, the meta
++         * box would only hold an empty ilst, so it is left out entirely. */
++        int has_cover = 0;
++        for (int i = 0; i < s->nb_streams; i++)
++            if (s->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC)
++                has_cover = 1;
++        if (!(s->flags & AVFMT_FLAG_BITEXACT) || av_dict_count(s->metadata) || has_cover)
++            mov_write_meta_tag(pb_buf, mov, s);
+         mov_write_loci_tag(s, pb_buf);
+     }
+ 
